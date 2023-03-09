@@ -1,2 +1,0 @@
-#!/plan9/bin/rc
-javac -g -depend Jabble.java && java Jabble

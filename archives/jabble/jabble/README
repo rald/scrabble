@@ -1,5 +1,0 @@
-Requires JDK1.1 or better
-
-in the jabble directory, 
-	javac *.java
-	java Jabble
