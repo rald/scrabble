@@ -1,0 +1,78 @@
+<html>
+  <head>
+    <title></title>
+  </head>
+
+<body bgcolor="lightgray">
+  
+  <canvas id="canvas"></canvas>
+
+<script>
+
+  var letters=[
+    'A','B','C','D','E','F','G','H','I',
+    'J','K','L','M','N','O','P','Q','R',
+    'S','T','U','V','W','X','Y','Z',' '
+  ];
+  
+  var points=[
+    1,3,3,2,1,4,2,4,1,
+    8,5,1,3,1,1,3,10,1,
+    1,1,1,4,4,8,4,10,0
+  ];
+  
+  var pieces=[
+    9,2,2,4,12,2,3,2,9,
+    1,1,4,2,6,8,2,1,6,
+    4,6,4,2,2,1,2,1,2
+  ];
+
+  var canvas=document.getElementById("canvas"); 
+  var ctx=canvas.getContext("2d");
+
+  canvas.width = 36*10+4;
+  canvas.height = 36*10+4;
+
+  ctx.translate(0.5,0.5);
+  
+  ctx.fillStyle="cornflowerblue";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  
+  
+  function drawLetter(n,x,y) {
+    ctx.fillStyle="white";
+    ctx.fillRect(x,y,32,32);
+    
+    ctx.fillStyle="black";
+    ctx.beginPath();
+    ctx.rect(x,y,32,32);
+    ctx.stroke();
+    ctx.closePath();
+    
+    ctx.font="bold 18px monospace";
+    ctx.textBaseline="middle";
+    ctx.textAlign="center";
+    ctx.fillText(letters[n],x+14,y+16);
+  
+    ctx.font="10px monospace";
+    ctx.textBaseline="middle";
+    ctx.textAlign="center";
+    ctx.fillText(points[n]==0?"":points[n].toString(),x+24,y+26);
+  }
+  
+  var i=0,k=0;
+  while(i<27) {
+    var j=0;
+    while(j<pieces[i]) {
+      drawLetter(i,k%10*36+4,Math.floor(k/10)*36+4);
+      k++;
+      j++;
+    }
+    i++;
+  }
+  
+</script>
+
+</body>
+
+</htnl>

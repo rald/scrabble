@@ -1,0 +1,207 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">    
+    <title>Scrabble</title>
+    
+    <style>
+      
+      html,body {
+        background: #f4f4f4;
+        margin: 0;
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+      }
+      
+    </style>
+    
+  </head>
+
+<body>
+  
+  <canvas id="canvas"></canvas>
+
+  <script src="touch.js"></script>
+
+<script>
+
+var colors=[
+"#1a1c2c",
+"#5d275d",
+"#b13e53",
+"#ef7d57",
+"#ffcd75",
+"#a7f070",
+"#38b764",
+"#257179",
+"#29366f",
+"#3b5dc9",
+"#41a6f6",
+"#73eff7",
+"#f4f4f4",
+"#94b0c2",
+"#566c86",
+"#333c57"
+];
+
+var canvas=document.getElementById("canvas");
+
+var ctx=canvas.getContext("2d");
+
+var s=16;
+var w=8;
+var h=12;
+
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+
+ctx.translate(0.5,0.5);
+
+ctx.fillStyle=colors[12];
+ctx.fillRect(0,0,canvas.width,canvas.height);
+
+var b=new Array(w*h*26);
+var c=0;
+var d=0;
+var f=0;
+var px=0,py=0;
+
+
+
+
+for(var i=0;i<w*h*26;i++) b[i]=0;
+
+
+
+function downloadVarAsFile(title,text){
+	var textToSave = text;
+	var hiddenElement = document.createElement('a');
+	hiddenElement.href = 'data:attachment/text,' + encodeURI(textToSave);
+	hiddenElement.target = '_blank';
+	hiddenElement.download = title+'.txt';
+	hiddenElement.click();
+}
+
+function line(f, x0, y0, x1, y1, color) {
+  var dx = Math.abs(x1-x0), sx = x0<x1 ? 1 : -1;
+  var dy = Math.abs(y1-y0), sy = y0<y1 ? 1 : -1;
+  var err = (dx>dy ? dx : -dy)/2, e2;
+  for(;;) {
+    b[f*w*h+y0*w+x0]=color;
+    if (x0==x1 && y0==y1) break;
+    e2 = err;
+    if (e2 >-dx) { err -= dy; x0 += sx; }
+    if (e2 < dy) { err += dx; y0 += sy; }
+  }
+}
+
+
+
+function grid(f,x,y,w,h,s,g,e) {
+  for(var j=0;j<h;j++) {
+    for(var i=0;i<w;i++) {
+      var k=b[f*w*h+j*w+i];
+      
+      ctx.beginPath();
+      if(k===0) 
+        ctx.fillStyle=colors[12];
+      else 
+        ctx.fillStyle=colors[0];
+      ctx.rect(i*s+x+1,j*s+y+1,s,s);
+      ctx.fill();
+      ctx.closePath();
+      
+      if(g) {
+        ctx.beginPath();
+        ctx.strokeStyle=colors[0];
+        ctx.rect(i*s+x+1,j*s+y+1,s,s);
+        ctx.stroke();
+        ctx.closePath();
+      }
+    }
+  }
+
+  if(e) {
+    ctx.beginPath();
+    ctx.strokeStyle=colors[0];
+    ctx.rect(x,y,s*w+2,s*h+2);
+    ctx.stroke();
+    ctx.closePath();
+  }
+
+}
+
+function inrect(x,y,rx,ry,rw,rh) {
+  return x>=rx && x<rx+rw && y>=ry && y<ry+rh;
+}
+
+function draw() {
+  
+  ctx.fillStyle=colors[12];
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  
+  grid(f,8,8,w,h,s,true,true);
+  grid(f,canvas.width-w*2-8,8,w,h,2,false,false);
+
+  for(var i=0;i<26;i++) {
+    grid(i,(i%13)*w*2+8,Math.floor(i/13)*h*2+h*s+s+8,w,h,2,false,true);
+  }
+  
+  ctx.beginPath();
+  ctx.strokeStyle=colors[5];
+  ctx.rect(f%13*w*2+8,Math.floor(f/13)*h*2+(h*s+s)+8,w*2,h*2)
+  ctx.stroke();
+  ctx.closePath();
+  
+  
+//  ctx.fillStyle=colors[0];
+//  ctx.fillRect(0,h*s+s,w*13+2,h*2+2);
+  if(mouse.isDown) {
+    if(inrect(mouse.x,mouse.y,0,h*s+s,w*13*2+2,h*2*2+2)) {
+      var x=Math.floor((mouse.x-1)/(w*2));
+      var y=Math.floor((mouse.y-(h*s+s)-1)/(h*2));
+      if(x>=0 && x<13 && y>=0 && y<2) {
+        f=y*13+x;
+      }
+    }
+  }
+
+  if(!d) {
+    if(mouse.isDown) {
+      if(inrect(mouse.x,mouse.y,9,9,w*s+2,h*s+2)) {
+        var x=Math.floor((mouse.x-9)/s);
+        var y=Math.floor((mouse.y-9)/s);
+        if(x>=0 && x<w && y>=0 && y<h) {
+          d=true;
+          c=1-b[f*w*h+y*w+x];
+          px=x;
+          py=y;
+        }
+      }
+    }
+  } else {
+    if(mouse.isDown) {
+      if(inrect(mouse.x,mouse.y,9,9,w*s+2,h*s+2)) {
+        var x=Math.floor((mouse.x-9)/s);
+        var y=Math.floor((mouse.y-9)/s);
+        if(x>=0 && x<w && y>=0 && y<h) {
+          line(f,px,py,x,y,c);
+          px=x;
+          py=y;
+        }
+      }
+    } else {
+      d=false;
+    }
+  }
+
+  window.requestAnimationFrame(draw);
+}
+
+window.requestAnimationFrame(draw);
+
+</script>
+
+</body>
+
+</html>
