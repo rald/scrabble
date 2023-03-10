@@ -142,6 +142,7 @@ int ValidWords(char **dict,size_t ndict,char *w,int x,int y,Direction d,int firs
 		for(size_t i=0;i<strlen(w);i++) {
 			if(b[y][i+x]==0) {
 				b[y][i+x]=w[i];
+				if(first && y==7 && i+x==7) { v=1; first=0; }
 			} else if(tolower(b[y][i+x])!=tolower(w[i])) {
 				printf("letters dont match\n");
 				return -1;
@@ -160,7 +161,6 @@ int ValidWords(char **dict,size_t ndict,char *w,int x,int y,Direction d,int firs
 			char *word=calloc(l+1,sizeof(*word));
 			for(int m=0;m<l;m++) {
 				word[m]=b[y][m+j];
-				if(first && y==7 && m+j==7) v=1;
 	 			if(a[y][m+j]==1) v=1; 
 	 			if(word[m]==tolower(word[m])) {
 	 				int pp=points[tolower(word[m])-'a'];
@@ -203,7 +203,6 @@ int ValidWords(char **dict,size_t ndict,char *w,int x,int y,Direction d,int firs
 					char *word=calloc(l+1,sizeof(*word));
 					for(int m=0;m<l;m++) {
 						word[m]=b[m+j][i+x];
-						if(first && i+x==7 && m+j==7) v=1;
 			 			if(a[m+j][i+x]==1) v=1; 
 			 			if(word[m]==tolower(word[m])) {
 			 				int pp=points[tolower(word[m])-'a'];
@@ -243,7 +242,7 @@ int ValidWords(char **dict,size_t ndict,char *w,int x,int y,Direction d,int firs
 		for(size_t i=0;i<strlen(w);i++) {
 			if(b[i+y][x]==0) {
 				b[i+y][x]=w[i];
-			} else if(tolower(b[i+y][x])!=tolower(w[i])) {
+				if(first && i+y==7 && x==7) { v=1; first=0; }			} else if(tolower(b[i+y][x])!=tolower(w[i])) {
 				printf("letters dont match\n");
 				return -1;
 			}
@@ -261,7 +260,6 @@ int ValidWords(char **dict,size_t ndict,char *w,int x,int y,Direction d,int firs
 			char *word=calloc(l+1,sizeof(*word));
 			for(int m=0;m<l;m++) {
 				word[m]=b[m+j][x];
-				if(first && x==7 && m+j==7) v=1;
 	 			if(a[m+j][x]==1) v=1; 
 	 			if(word[m]==tolower(word[m])) {
 	 				int pp=points[tolower(word[m])-'a'];
@@ -306,7 +304,6 @@ int ValidWords(char **dict,size_t ndict,char *w,int x,int y,Direction d,int firs
 					char *word=calloc(l+1,sizeof(*word));
 					for(int m=0;m<l;m++) {
 						word[m]=b[i+y][m+j];
-						if(first && i+y==7 && m+j==7) v=1;
 			 			if(a[i+y][m+j]==1) v=1; 
 			 			if(word[m]==tolower(word[m])) {
 			 				int pp=points[tolower(word[m])-'a'];
