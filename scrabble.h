@@ -142,7 +142,7 @@ int ValidWords(char **dict,size_t ndict,char *w,int x,int y,Direction d,int firs
 		for(size_t i=0;i<strlen(w);i++) {
 			if(b[y][i+x]==0) {
 				b[y][i+x]=w[i];
-				if(first && y==7 && i+x==7) { v=1; first=0; }
+				if(first && y==7 && i+x==7) v=1;
 			} else if(tolower(b[y][i+x])!=tolower(w[i])) {
 				printf("letters dont match\n");
 				return -1;
@@ -242,7 +242,8 @@ int ValidWords(char **dict,size_t ndict,char *w,int x,int y,Direction d,int firs
 		for(size_t i=0;i<strlen(w);i++) {
 			if(b[i+y][x]==0) {
 				b[i+y][x]=w[i];
-				if(first && i+y==7 && x==7) { v=1; first=0; }			} else if(tolower(b[i+y][x])!=tolower(w[i])) {
+				if(first && i+y==7 && x==7) v=1;			
+			} else if(tolower(b[i+y][x])!=tolower(w[i])) {
 				printf("letters dont match\n");
 				return -1;
 			}
