@@ -107,7 +107,7 @@ int main(void) {
 	
 		char col,dir;
 		int row,r;
-		char w[RACK_MAX+1];
+		char w[STRING_MAX];
 
 		printf("scrabble > ");
 
@@ -124,8 +124,9 @@ int main(void) {
 					".c [player] [letters]              -> change letters\n"					 
 					".s [player]                        -> shuffle letters\n"
 					".a [player] [letters]              -> arrange letters\n"
-					".b                                 -> pront board\n"
-					".r                                 -> pront racks\n"
+					".b                                 -> print board\n"
+					".r                                 -> print racks\n"
+					".d [word]                          -> define word\n"
 					".l                                 -> clear screen\n"
 					".q                                 -> quit program\n"
 					"player -> 0 to 3\n"
@@ -165,7 +166,19 @@ int main(void) {
 				Rack_Shuffle(rack[r]);
 			} else if(sscanf(line,".a %d %s",&r,w)==2) {
 				Rack_Arrange(rack[r],w);
-			} else if(sscanf(line,".s %d",&r)==1) {
+			} else if(sscanf(line,".d %s",w)==1) {
+				FILE *fin=fopen("cswd.txt","r");
+				while(fgets(line,STRING_MAX,fin)) {
+					int l=strchr(line,'\t')-line;
+					char h[STRING_MAX];
+					h[0]='\0';
+					strncpy(h,line,l);
+					h[l]='\0';
+					if(!strcasecmp(w,h)) {
+						printf("%s",line);
+					}
+				}
+				fclose(fin);
 			} else {
 				printf("invalid command\n");
 			}
