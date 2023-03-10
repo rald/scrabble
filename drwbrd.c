@@ -5,8 +5,8 @@
 #include <math.h>
 
 #include "gifenc.h"
-#include "scrabble.h" 
 
+#include "common.h" 
 #include "font.h" 
 
 uint8_t colors[]={
@@ -117,8 +117,7 @@ void Draw_Board(ge_GIF *gif,int x,int y) {
 		Draw_Text(gif,str,13+x,j*34+34+13+y,1,0,12);
 		Draw_Text(gif,str,16*34+13+x,j*34+34+13+y,1,0,12);
 		for(int i=0;i<BOARD_WIDTH;i++) {
-			int k=j*BOARD_WIDTH+i;
-			Fill_Rect(gif,i*34+34+1+x,j*34+34+1+y,32,32,bcolors[bonus[k]]);				
+			Fill_Rect(gif,i*34+34+1+x,j*34+34+1+y,32,32,bcolors[bonus[j][i]]);				
 		}
 	}
 	Draw_Char(gif,'*',7*34+34+10+x,7*34+34+10+y,2,0,0);
