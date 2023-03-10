@@ -119,20 +119,20 @@ int main(void) {
 			if(!strcmp(line,".h")) {
 
 				printf(
-					".h                                 -> this help\n"
+					".h -> this help\n"
 					".w [player] [col][row][dir] [word] -> play a word\n"
-					".c [player] [letters]              -> change letters\n"					 
-					".s [player]                        -> shuffle letters\n"
-					".a [player] [letters]              -> arrange letters\n"
-					".b                                 -> print board\n"
-					".r                                 -> print racks\n"
-					".d [word]                          -> define word\n"
-					".l                                 -> clear screen\n"
-					".q                                 -> quit program\n"
+					".c [player] [letters] -> change letters\n"					 
+					".s [player] -> shuffle letters\n"
+					".a [player] [letters] -> arrange letters\n"
+					".b -> print board\n"
+					".r -> print racks\n"
+					".d [word] -> define word\n"
+					".l -> clear screen\n"
+					".q -> quit program\n"
 					"player -> 0 to 3\n"
-					"col    -> A to O\n"
-					"row    -> 1 to 15\n"
-					"dir    -> a for across/d for down\n"
+					"col -> A to O\n"
+					"row -> 1 to 15\n"
+					"dir -> a for across/d for down\n"
 				);		
 
 			} else if(!strcmp(line,".q")) {
