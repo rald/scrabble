@@ -19,7 +19,10 @@ void flush() {
 	int c; while((c=getchar())!='\n' && c!=EOF);
 }
 
-
+void clrscr() {
+	printf("\033[2J");
+	printf("\033[1;1H");
+}
 
 void PrintBoard() {
 	printf("   ");
@@ -82,6 +85,8 @@ int main(void) {
 
 	int f=1;
 
+	clrscr();
+
 	for(;;) {
 
 		int pnt=0;
@@ -99,7 +104,11 @@ int main(void) {
 		int row,r;
 		char w[RACK_MAX+1];
 
+		printf("\nscrabble > ");
+
 		if((rlen=getline(&line,&llen,stdin))!=-1) {		
+
+			clrscr();
 
 			rmnl(line);
 			trim(line);
@@ -148,6 +157,8 @@ int main(void) {
 			}
 
 		}
+
+		printf("\n");
 
 	}
 
