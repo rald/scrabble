@@ -89,6 +89,30 @@ void Rack_Arrange(char *rack,char *w) {
 	}
 }
 
+int Rack_Change(char *b,char *r,char *w) {
+	if(strlen(b)<strlen(w)) {
+		printf("bag has only %zu letters\n",strlen(b));
+		return 0;
+	} else { 
+		for(size_t i=0;i<strlen(w);i++) {
+			if(Rack_IndexOf(r,tolower(w[i]))==-1) {
+				printf("invalid letters\n");
+				return 0;
+			}
+		}
+		for(size_t i=0;i<strlen(w);i++) {
+			int tile=Bag_PickTile(b);
+			if(tile!=-1) {
+				Rack_RemoveTile(r,tolower(w[i]));
+				Rack_AddTile(r,tile);
+			}
+		}
+		for(size_t i=0;i<strlen(w);i++) {
+			Bag_AddTile(b,w[i]);
+		}										
+	}
+	return 1;
+}
 
 #endif /* RACK_IMPLEMENTATION */
 

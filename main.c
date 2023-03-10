@@ -25,7 +25,7 @@ void flush() {
 void PrintBoard() {
 	textbackground(BLACK);
 	textcolor(WHITE);
-	printf("  ");
+	printf("\n  ");
 	for(int i=0;i<BOARD_WIDTH;i++) {
 		textbackground(BLACK);
 		textcolor(WHITE);
@@ -56,11 +56,13 @@ void PrintBoard() {
 				printf(".");				
 			}
 		}
+		textbackground(BLACK);
+		textcolor(WHITE);
 		printf("\n");
 	}
-	printf("\n");
 	textbackground(BLACK);
 	textcolor(WHITE);
+	printf("\n");
 }
 
 
@@ -96,53 +98,54 @@ int main(void) {
 	int f=1;
 
 	clrscr();
+ 	printf("type .h for help\n\n");
 
 	for(;;) {
 
 		int pnt=0;
 		char line[STRING_MAX];
-
-		PrintBoard();
-
-		for(int i=0;i<4;i++) {
-			printf("%d %3d %s\n",i,score[i],rack[i]);
-		}
-
+	
 		char col,dir;
 		int row,r;
 		char w[RACK_MAX+1];
-
- 		printf("type .h for help\n");
 
 		printf("scrabble > ");
 
 		if(fgets(line,STRING_MAX,stdin)) {		
 
-
 			rmnl(line);
 			trim(line);
 
-			clrscr();
-
 			if(!strcmp(line,".h")) {
+
 				printf(
 					".h                                 -> this help\n"
 					".w [player] [col][row][dir] [word] -> play a word\n"
 					".c [player] [letters]              -> change letters\n"					 
 					".s [player]                        -> shuffle letters\n"
 					".a [player] [letters]              -> arrange letters\n"
+					".b                                 -> pront board\n"
+					".r                                 -> pront racks\n"
+					".l                                 -> clear screen\n"
 					".q                                 -> quit program\n"
 					"player -> 0 to 3\n"
 					"col    -> A to O\n"
 					"row    -> 1 to 15\n"
-					"dir    -> a for across/d for down\n\n"
+					"dir    -> a for across/d for down\n"
 				);		
 
-				printf("press enter key to continue...");
-				getchar();
+			} else if(!strcmp(line,".q")) {
+				break;
+			} else if(!strcmp(line,".l")) {
 				clrscr();
-
-				
+			} else if(!strcmp(line,".b")) {
+				PrintBoard();
+			} else if(!strcmp(line,".r")) {
+				printf("\n");
+				for(int i=0;i<4;i++) {
+					printf("%d %3d %s\n",i,score[i],rack[i]);
+				}
+				printf("\n");
 			} else if(sscanf(line,".w %d %c%d%c %s",&r,&col,&row,&dir,w)==5) {		
 				int x=tolower(col)-'a';
 				int y=row-1;
@@ -157,30 +160,7 @@ int main(void) {
 
 				if(f==1) f=0;
 			} else if(sscanf(line,".c %d %s",&r,w)==2) {
-				if(strlen(bag)<strlen(w)) {
-					printf("bag has only %zu letters\n",strlen(bag));
-				} else { 
-					int v=1;
-					for(size_t i=0;i<strlen(w);i++) {
-						if(Rack_IndexOf(rack[r],tolower(w[i]))==-1) {
-							v=0;
-							printf("invalid letters\n");
-							break;
-						}
-					}
-					if(v==1) {
-						for(size_t i=0;i<strlen(w);i++) {
-							int tile=Bag_PickTile(bag);
-							if(tile!=-1) {
-								Rack_RemoveTile(rack[r],tolower(w[i]));
-								Rack_AddTile(rack[r],tile);
-							}
-						}
-						for(size_t i=0;i<strlen(w);i++) {
-							Bag_AddTile(bag,w[i]);
-						}										
-					}
-				}
+				Rack_Change(bag,rack[r],w);
 			} else if(sscanf(line,".s %d",&r)==1) {
 				Rack_Shuffle(rack[r]);
 			} else if(sscanf(line,".a %d %s",&r,w)==2) {
@@ -192,9 +172,9 @@ int main(void) {
 
 		}
 
-		printf("\n");
-
 	}
+
+	printf("bye\n");
 
 	return 0;
 }
