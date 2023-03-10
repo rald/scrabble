@@ -1,202 +1,168 @@
-#define _GNU_SOURCE
-
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
-#include <stdarg.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <sys/wait.h>
-#include <signal.h>
 #include <time.h>
 
 
 
-#include "common.h"
-
-#define INI_IMPLEMENTATION 
-#include "ini.h"
-
-#define IRC_IMPLEMENTATION 
-#include "irc.h"
-
-#define STRUTIL_IMPLEMENTATION 
-#include "strutil.h"
-
-#define SCRABBLE_IMPLEMENTATION 
+#define SCRABBLE_IMPLEMENTATION
 #include "scrabble.h"
 
+#define BAG_IMPLEMENTATION
+#include "bag.h"
 
-
-int sck;
-
-
-
-typedef enum {
-	GAMESTATE_INIT=0,
-	GAMESTATE_START,
-	GAMESTATE_JOIN,
-	GAMESTATE_PLAY,	
-	GAMESTATE_MAX
-} GameState;
-
-GameState gameState=GAMESTATE_INIT;
+#define RACK_IMPLEMENTATION
+#include "rack.h"
 
 
 
-
-
-
-void sig_handler(int signum) {
-	if(signum==SIGALRM) {
-	}
+void flush() {
+	int c; while((c=getchar())!='\n' && c!=EOF);
 }
 
-
-
-void parsein(IrcMsg *im) {
-
-	char *msg=strdup(im->txt);
-
-	trim(msg);
-
-	if(!strcmp(msg,".start")) {
-
-		if(gameState==GAMESTATE_INIT) {
-			gameState=GAMESTATE_START;
-		} else if(gameState==GAMESTATE_START) {
-			notice(sck,im->usr,GAME_TITLE" %s: game is already started",im->usr);
-		}
-
-	} else if(!strcmp(msg,".join")) {
-		if(gameState==GAMESTATE_START) {
-			if()
-		} else {
-			notice(sck,im->usr,GAME_TITLE" %s: game is not started",im->usr);
-		}
-	}
-	
-	free(msg);
-	msg=NULL;
-
+void clrscr() {
+	printf("\033[2J");
+	printf("\033[1;1H");
 }
 
-
-
-void parsesrv(IrcMsg *im,char *line) {
-	im->cmd=line;
-	im->usr = (char*)hst;
-	if(!im->cmd || !*im->cmd) return; 
-	if(im->cmd[0] == ':') {
-		im->usr = im->cmd + 1;
-		im->cmd = skip(im->usr, ' ');
-		if(!*im->cmd) return;
-		skip(im->usr, '!');
+void PrintBoard() {
+	printf("   ");
+	for(int i=0;i<BOARD_WIDTH;i++) {
+		printf("%c",i+'A');
 	}
-	skip(im->cmd, '\r');
-	im->par = skip(im->cmd, ' ');
-	im->txt = skip(im->par, ':');
-	trim(im->par);
+	printf("\n\n");
+
+	for(int j=0;j<BOARD_HEIGHT;j++) {
+		printf("%2d ",j+1);
+		for(int i=0;i<BOARD_WIDTH;i++) {
+			if(board[j][i]!=0) {
+				printf("%c",board[j][i]);
+			} else if (i==7 && j==7) {
+				printf("*");				
+			} else  {
+				switch(bonus[j][i]) {
+					case 0: printf("."); break;
+					case 1: printf("1"); break;
+					case 2: printf("2"); break;
+					case 3: printf("3"); break;
+					case 4: printf("4"); break;
+				}
+			}
+		}
+		printf("\n");
+	}
+	printf("\n");
 }
 
 
 
 int main(void) {
 
-	char line[STRING_MAX];
-	size_t llen=STRING_MAX;
-	ssize_t rlen=0;
+	char **dict=NULL;
+	size_t ndict=0;
 
-	IrcMsg im;
+	char *bag=NULL;
+	char *rack[4];
+	int score[4];
 
 	srand(time(NULL));
 
-	signal(SIGALRM, sig_handler);
+	Scrabble_LoadDict(&dict,&ndict,"csw.txt");
 
-  ini_t *config = ini_load("config.ini");
+	bag=Bag_New();
 
-  const char *val; 
-
-  val = ini_get(config,"default","host");
-
-  hst=val?val:hst;
-
-  val = ini_get(config,"default","port");
-
-  prt=val?val:prt;
-
-  val = ini_get(config,"default","nick");
-
-  nck=val?val:nck;
-
-  val = ini_get(config,"default","password");
-
-  pss=val?val:pss;
-
-  val = ini_get(config,"default","channel");
-
-  chn=val?val:chn;
-
-  val = ini_get(config,"default","master");
-
-  mst=val?val:mst;
+	for(int j=0;j<4;j++) {
+		score[j]=0;
+		rack[j]=Rack_New();
+		for(int i=0;i<7;i++) {
+			int tile=Bag_PickTile(bag);
+			if(tile!=-1) {
+				Rack_AddTile(rack[j],tile);
+			}
+		}
+	}
 
 
 
-	sck=Irc_Connect(hst,prt);
+	int f=1;
 
-  if (sck<0) {
-  	DieWithUserMessage("Irc_Connect() failed", "unable to connect");
-  }
+	clrscr();
 
-	if(pss) raw(sck,"PASS %s\r\n",pss);
-	raw(sck,"NICK %s\r\n",nck);
-	raw(sck,"USER %s %s %s :%s\r\n",nck,nck,nck,nck);
+	for(;;) {
 
-	while((rlen=Irc_Recv(sck,line,llen))!=-1) { 
+		int pnt=0;
+		char *line=NULL;
+		size_t llen=0;
+		ssize_t rlen=0;
 
-		if(rlen>0) {
+		PrintBoard();
 
-			im.cmd=NULL;
-			im.usr=NULL;
-			im.par=NULL;
-			im.txt=NULL;
+		for(int i=0;i<4;i++) {
+			printf("%d %3d %s\n",i,score[i],rack[i]);
+		}
 
-			parsesrv(&im,line);		
+		char col,dir;
+		int row,r;
+		char w[RACK_MAX+1];
 
-	/*
-			printf("cmd: %s\n",im.cmd);
-			printf("usr: %s\n",im.usr);
-			printf("par: %s\n",im.par);
-			printf("txt: %s\n",im.txt);
-	//*/
-			
-			if(!strcmp(im.cmd,"PING")) {
-				line[1]='O';
-				raw(sck,"PONG :%s\r\n",im.txt);
-			} else if(!strcmp(im.cmd,"001")) {
-				raw(sck,"JOIN %s\r\n",chn);
-			} else if(!strcmp(im.cmd,"PRIVMSG")) {
-				printf("%s <%s> %s\n",im.par,im.usr,im.txt);
-				parsein(&im);				
+		printf("\nscrabble > ");
+
+		if((rlen=getline(&line,&llen,stdin))!=-1) {		
+
+			clrscr();
+
+			rmnl(line);
+			trim(line);
+
+			if(sscanf(line,".w %d %c%d%c %s",&r,&col,&row,&dir,w)==5) {		
+				int x=tolower(col)-'a';
+				int y=row-1;
+				int d=tolower(dir)=='d'?DIRECTION_DOWN:DIRECTION_ACROSS;
+
+				pnt=Scrabble_Move(dict,ndict,bag,rack[r],w,x,y,d,f);
+
+				if(pnt!=-1) score[r]+=pnt;
+
+				if(f==1) f=0;
+			} else if(sscanf(line,".c %d %s",&r,w)==2) {
+				if(strlen(bag)<strlen(w)) {
+					printf("bag has only %zu letters\n",strlen(bag));
+				} else { 
+					int v=1;
+					for(size_t i=0;i<strlen(w);i++) {
+						if(Rack_IndexOf(rack[r],tolower(w[i]))==-1) {
+							v=0;
+							printf("invalid letters\n");
+							break;
+						}
+					}
+					if(v==1) {
+						for(size_t i=0;i<strlen(w);i++) {
+							int tile=Bag_PickTile(bag);
+							if(tile!=-1) {
+								Rack_RemoveTile(rack[r],tolower(w[i]));
+								Rack_AddTile(rack[r],tile);
+							}
+						}
+						for(size_t i=0;i<strlen(w);i++) {
+							Bag_AddTile(bag,w[i]);
+						}										
+					}
+				}
+			} else if(sscanf(line,".s %d",&r)==1) {
+				Rack_Shuffle(rack[r]);
+			} else if(sscanf(line,".a %d %s",&r,w)==2) {
+				Rack_Arrange(rack[r],w);
+			} else {
+				printf("invalid command\n");
 			}
 
 		}
 
-		line[0]='\0';
-		llen=STRING_MAX;
-		rlen=0;
+		printf("\n");
 
-  }
+	}
 
 	return 0;
-	
 }
 
 
