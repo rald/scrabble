@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include "common.h"
 
 #define CONIO_IMPLEMENTATION
 #include "conio.h"
@@ -99,26 +100,23 @@ int main(void) {
 	for(;;) {
 
 		int pnt=0;
-		char *line=NULL;
-		size_t llen=0;
-		ssize_t rlen=0;
+		char line[STRING_MAX];
 
 		PrintBoard();
 
 		for(int i=0;i<4;i++) {
 			printf("%d %3d %s\n",i,score[i],rack[i]);
 		}
-		printf("\n");
 
 		char col,dir;
 		int row,r;
 		char w[RACK_MAX+1];
 
- 		printf("type .h for help\n\n");
+ 		printf("type .h for help\n");
 
 		printf("scrabble > ");
 
-		if((rlen=getline(&line,&llen,stdin))!=-1) {		
+		if(fgets(line,STRING_MAX,stdin)) {		
 
 
 			rmnl(line);

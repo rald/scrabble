@@ -125,6 +125,7 @@ int ValidWords(char **dict,size_t ndict,char *w,int x,int y,Direction d,int firs
 
 	int v=0;
 	int pnt=0;
+	int star=0;
 
 
 	for(int j=0;j<BOARD_WIDTH;j++)
@@ -142,10 +143,16 @@ int ValidWords(char **dict,size_t ndict,char *w,int x,int y,Direction d,int firs
 		for(size_t i=0;i<strlen(w);i++) {
 			if(b[y][i+x]==0) {
 				b[y][i+x]=w[i];
-				if(first && y==7 && i+x==7) v=1;
-			} else if(tolower(b[y][i+x])!=tolower(w[i])) {
-				printf("letters dont match\n");
+				if(first && y==7 && i+x==7) star=1;
+			}
+		}
+
+		if(first) {
+			if(star==0) {
+				printf("must start with star\n");
 				return -1;
+			} else {
+				v=1;
 			}
 		}
 
@@ -242,10 +249,16 @@ int ValidWords(char **dict,size_t ndict,char *w,int x,int y,Direction d,int firs
 		for(size_t i=0;i<strlen(w);i++) {
 			if(b[i+y][x]==0) {
 				b[i+y][x]=w[i];
-				if(first && i+y==7 && x==7) v=1;			
-			} else if(tolower(b[i+y][x])!=tolower(w[i])) {
-				printf("letters dont match\n");
+				if(first && i+y==7 && x==7) star=1;			
+			}
+		}
+
+		if(first) {
+			if(star==0) {
+				printf("must start with star\n");
 				return -1;
+			} else {
+				v=1;
 			}
 		}
 

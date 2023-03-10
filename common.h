@@ -5,10 +5,10 @@
 
 #define GAME_TITLE "SCRABBLE"
 #define SCORE_FILE "score.txt"
-#define STRING_MAX 65536
 #define NUM_LETTERS 27
 #define BOARD_WIDTH 15
 #define BOARD_HEIGHT 15
+#define STRING_MAX 512
 
 
 
