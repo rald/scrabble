@@ -3,6 +3,8 @@
 #include <time.h>
 
 
+#define CONIO_IMPLEMENTATION
+#include "conio.h"
 
 #define SCRABBLE_IMPLEMENTATION
 #include "scrabble.h"
@@ -19,38 +21,45 @@ void flush() {
 	int c; while((c=getchar())!='\n' && c!=EOF);
 }
 
-void clrscr() {
-	printf("\033[2J");
-	printf("\033[1;1H");
-}
-
 void PrintBoard() {
-	printf("   ");
+	textbackground(BLACK);
+	textcolor(WHITE);
+	printf("  ");
 	for(int i=0;i<BOARD_WIDTH;i++) {
+		textbackground(BLACK);
+		textcolor(WHITE);
 		printf("%c",i+'A');
 	}
-	printf("\n\n");
+	printf("\n");
 
 	for(int j=0;j<BOARD_HEIGHT;j++) {
-		printf("%2d ",j+1);
+		textbackground(BLACK);
+		textcolor(WHITE);
+		printf("%2d",j+1);
 		for(int i=0;i<BOARD_WIDTH;i++) {
+			switch(bonus[j][i]) {
+				case 0: textbackground(BLACK); textcolor(WHITE); break;
+				case 1: textbackground(CYAN); textcolor(WHITE); break;
+				case 2: textbackground(BLUE); textcolor(WHITE); break;
+				case 3: textbackground(MAGENTA); textcolor(WHITE); break;
+				case 4: textbackground(RED); textcolor(WHITE); break;
+				case 5: textbackground(BLACK); textcolor(WHITE); break;
+			}
 			if(board[j][i]!=0) {
+				textbackground(WHITE);
+				textcolor(BLACK);
 				printf("%c",board[j][i]);
 			} else if (i==7 && j==7) {
 				printf("*");				
 			} else  {
-				switch(bonus[j][i]) {
-					case 0: printf("."); break;
-					case 1: printf("1"); break;
-					case 2: printf("2"); break;
-					case 3: printf("3"); break;
-					case 4: printf("4"); break;
-				}
+				printf(".");				
 			}
 		}
 		printf("\n");
 	}
 	printf("\n");
+	textbackground(BLACK);
+	textcolor(WHITE);
 }
 
 
@@ -99,28 +108,54 @@ int main(void) {
 		for(int i=0;i<4;i++) {
 			printf("%d %3d %s\n",i,score[i],rack[i]);
 		}
+		printf("\n");
 
 		char col,dir;
 		int row,r;
 		char w[RACK_MAX+1];
 
-		printf("\nscrabble > ");
+ 		printf("type .h for help\n\n");
+
+		printf("scrabble > ");
 
 		if((rlen=getline(&line,&llen,stdin))!=-1) {		
 
-			clrscr();
 
 			rmnl(line);
 			trim(line);
 
-			if(sscanf(line,".w %d %c%d%c %s",&r,&col,&row,&dir,w)==5) {		
+			clrscr();
+
+			if(!strcmp(line,".h")) {
+				printf(
+					".h                                 -> this help\n"
+					".w [player] [col][row][dir] [word] -> play a word\n"
+					".c [player] [letters]              -> change letters\n"					 
+					".s [player]                        -> shuffle letters\n"
+					".a [player] [letters]              -> arrange letters\n"
+					".q                                 -> quit program\n"
+					"player -> 0 to 3\n"
+					"col    -> A to O\n"
+					"row    -> 1 to 15\n"
+					"dir    -> a for across/d for down\n\n"
+				);		
+
+				printf("press enter key to continue...");
+				getchar();
+				clrscr();
+
+				
+			} else if(sscanf(line,".w %d %c%d%c %s",&r,&col,&row,&dir,w)==5) {		
 				int x=tolower(col)-'a';
 				int y=row-1;
 				int d=tolower(dir)=='d'?DIRECTION_DOWN:DIRECTION_ACROSS;
 
 				pnt=Scrabble_Move(dict,ndict,bag,rack[r],w,x,y,d,f);
 
-				if(pnt!=-1) score[r]+=pnt;
+				if(pnt!=-1) {
+					printf("plus %d points\n",pnt);
+					score[r]+=pnt;
+				}
 
 				if(f==1) f=0;
 			} else if(sscanf(line,".c %d %s",&r,w)==2) {
@@ -152,6 +187,7 @@ int main(void) {
 				Rack_Shuffle(rack[r]);
 			} else if(sscanf(line,".a %d %s",&r,w)==2) {
 				Rack_Arrange(rack[r],w);
+			} else if(sscanf(line,".s %d",&r)==1) {
 			} else {
 				printf("invalid command\n");
 			}

@@ -184,7 +184,7 @@ int ValidWords(char **dict,size_t ndict,char *w,int x,int y,Direction d,int firs
 				return -1;
 			} else {
 				pnt+=p; 
-				printf("valid word \"%s\" %d points\n",word,p);
+				printf("%s %d\n",word,p);
 			}
 			free(word);
 			word=NULL;
@@ -227,7 +227,7 @@ int ValidWords(char **dict,size_t ndict,char *w,int x,int y,Direction d,int firs
 						return -1;
 					} else {
 						pnt+=p; 
-						printf("valid word \"%s\" %d points\n",word,p);
+						printf("%s %d\n",word,p);
 					}
 					free(word);
 					word=NULL;
@@ -285,7 +285,7 @@ int ValidWords(char **dict,size_t ndict,char *w,int x,int y,Direction d,int firs
 				return -1;
 			} else {
 				pnt+=p; 
-				printf("valid word \"%s\" %d points\n",word,p);
+				printf("%s %d\n",word,p);
 			}
 			free(word);
 			word=NULL;
@@ -330,7 +330,7 @@ int ValidWords(char **dict,size_t ndict,char *w,int x,int y,Direction d,int firs
 						return -1;
 					} else { 
 						pnt+=p;
-						printf("valid word \"%s\" %d points\n",word,p);
+						printf("%s %d\n",word,p);
 					}
 					free(word);
 					word=NULL;
