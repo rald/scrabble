@@ -385,7 +385,6 @@ int Scrabble_Move(char **dict,size_t ndict,char *bag,char *l,char *w,int x,int y
 	}
 
 	if((pnt=ValidWords(dict,ndict,w,x,y,d,f))==-1) {
-		printf("invalid word\n");
 		return -1;
 	}		
 

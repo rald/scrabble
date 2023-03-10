@@ -162,6 +162,8 @@ int main(void) {
 				if(f==1) f=0;
 			} else if(sscanf(line,".c %d %s",&r,w)==2) {
 				Rack_Change(bag,rack[r],w);
+			} else if(sscanf(line,".c %d",&r)==1) {
+				Rack_Change(bag,rack[r],rack[r]);
 			} else if(sscanf(line,".s %d",&r)==1) {
 				Rack_Shuffle(rack[r]);
 			} else if(sscanf(line,".a %d %s",&r,w)==2) {
