@@ -29,12 +29,13 @@ void Words_Add(char ***words,size_t *nwords,char *word);
 int Scrabble_LoadDict(char ***dict,size_t *ndict,char *filename);
 
 int ValidBounds(int bx,int by,int ex,int ey);
-ssize_t Char_IndexOf(char *word,char ch);
 
-int Char_Remove(char *word,char ch);
 ssize_t Word_IndexOf(char **words,size_t nwords,char *word);
+
 int ValidLetters(char *l,char *w,int x,int y,Direction d);
+
 int ValidWords(char **dict,size_t ndict,char *w,int x,int y,Direction d,int first);
+
 int Scrabble_Move(char **dict,size_t ndict,char *bag,char *l,char *w,int x,int y,Direction d,int f);
 
 
@@ -69,27 +70,8 @@ int ValidBounds(int bx,int by,int ex,int ey) {
 	return bx>=0 && ex<BOARD_WIDTH && by>=0 && ey<BOARD_HEIGHT;
 }
 
-ssize_t Char_IndexOf(char *word,char ch) {
-	for(ssize_t i=0;i<strlen(word);i++) {
-		if(word[i]==ch) return i;
-	}
-	return -1;
-}
-
-int Char_Remove(char *word,char ch) {
-	int res=0;
-	int j=Char_IndexOf(word,ch);
-	if(j!=-1) {
-		for(ssize_t i=j;i<strlen(word)-1;i++) {
-			word[i]=word[i+1];
-	  }
-	  res=1;
-	}
-	return res;
-}
-
 ssize_t Word_IndexOf(char **words,size_t nwords,char *word) {
-	for(ssize_t i=0;i<nwords;i++) {
+	for(ssize_t i=0;i<(ssize_t)nwords;i++) {
 		if(!strcasecmp(words[i],word)) return i;
 	}
 	return -1;
@@ -99,11 +81,11 @@ ssize_t Word_IndexOf(char **words,size_t nwords,char *word) {
 int ValidLetters(char *l,char *w,int x,int y,Direction d) {
 
 	int n0=0;
-	for(int i=0;i<strlen(l);i++) {
+	for(size_t i=0;i<strlen(l);i++) {
 		if(l[i]=='.') n0++;
 	}
 	int n1=0;
-	for(int i=0;i<strlen(w);i++) {
+	for(size_t i=0;i<strlen(w);i++) {
 		if(w[i]==toupper(w[i])) n1++;
 	}
 	if(n0<n1) {
@@ -111,9 +93,9 @@ int ValidLetters(char *l,char *w,int x,int y,Direction d) {
 		return 0;
 	}
 
-	for(int i=0;i<strlen(w);i++) {
+	for(size_t i=0;i<strlen(w);i++) {
 		if(d==DIRECTION_ACROSS) {
-			if(board[y][x+i]==0 && w[i]==tolower(w[i]) && Char_IndexOf(strlwr(l),tolower(w[i]))==-1) {
+			if(board[y][x+i]==0 && w[i]==tolower(w[i]) && Rack_IndexOf(strlwr(l),tolower(w[i]))==-1) {
 				printf("letter '%c' not present in rack\n",w[i]);
 				return 0;
 			}
@@ -123,7 +105,7 @@ int ValidLetters(char *l,char *w,int x,int y,Direction d) {
 				return 0;
 			}
 		} else if(d==DIRECTION_DOWN) {
-			if(board[y+i][x]==0 && w[i]==tolower(w[i]) && Char_IndexOf(strlwr(l),tolower(w[i]))==-1) {
+			if(board[y+i][x]==0 && w[i]==tolower(w[i]) && Rack_IndexOf(strlwr(l),tolower(w[i]))==-1) {
 				printf("letter '%c' not present in rack\n",w[i]);
 			}
 
@@ -157,7 +139,7 @@ int ValidWords(char **dict,size_t ndict,char *w,int x,int y,Direction d,int firs
 
 		int j,k,l;
 
-		for(int i=0;i<strlen(w);i++) {
+		for(size_t i=0;i<strlen(w);i++) {
 			if(b[y][i+x]==0) {
 				b[y][i+x]=w[i];
 			} else if(tolower(b[y][i+x])!=tolower(w[i])) {
@@ -208,7 +190,7 @@ int ValidWords(char **dict,size_t ndict,char *w,int x,int y,Direction d,int firs
 			word=NULL;
 		}
 
-		for(int i=0;i<strlen(w);i++) {
+		for(size_t i=0;i<strlen(w);i++) {
 			if(board[y][i+x]==0) {
 				j=y;
 				while(j>0 && b[j-1][i+x]!=0) j--;
@@ -258,7 +240,7 @@ int ValidWords(char **dict,size_t ndict,char *w,int x,int y,Direction d,int firs
 
 		int j,k,l;
 
-		for(int i=0;i<strlen(w);i++) {
+		for(size_t i=0;i<strlen(w);i++) {
 			if(b[i+y][x]==0) {
 				b[i+y][x]=w[i];
 			} else if(tolower(b[i+y][x])!=tolower(w[i])) {
@@ -311,7 +293,7 @@ int ValidWords(char **dict,size_t ndict,char *w,int x,int y,Direction d,int firs
 
 
 		
-		for(int i=0;i<strlen(w);i++) {
+		for(size_t i=0;i<strlen(w);i++) {
 			if(board[i+y][x]==0) {
 				j=x;
 				while(j>0 && b[i+y][j-1]!=0) j--;
@@ -396,7 +378,7 @@ int Scrabble_Move(char **dict,size_t ndict,char *bag,char *l,char *w,int x,int y
 		return -1;
 	}		
 
-	for(int i=0;i<strlen(w);i++) {
+	for(size_t i=0;i<strlen(w);i++) {
 		if(d==DIRECTION_ACROSS) {
 			if(board[y][x+i]==0) {
 				board[y][x+i]=w[i];

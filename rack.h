@@ -51,7 +51,7 @@ int Rack_RemoveTile(char *rack,char letter) {
 	ssize_t i=0,j=Rack_IndexOf(rack,letter);
 	if(j!=-1) {
 		res=rack[j];
-		for(i=j;i<strlen(rack)-1;i++) {
+		for(i=j;i<(ssize_t)strlen(rack)-1;i++) {
 			rack[i]=rack[i+1];
 		}
 		rack[i]='\0';
@@ -61,7 +61,7 @@ int Rack_RemoveTile(char *rack,char letter) {
 
 
 void Rack_Shuffle(char *rack) {
-	for(int i=strlen(rack)-1;i>0;i--) {
+	for(size_t i=strlen(rack)-1;i>0;i--) {
 		int j=rand()%(i+1);
 		int t=rack[i];
 		rack[i]=rack[j];

@@ -13,12 +13,16 @@
 #define RACK_IMPLEMENTATION
 #include "rack.h"
 
+
+
 void flush() {
 	int c; while((c=getchar())!='\n' && c!=EOF);
 }
 
+
+
 void PrintBoard() {
-	printf("   ");
+	printf("    ");
 	for(int i=0;i<BOARD_WIDTH;i++) {
 		printf(" %c ",i+'A');
 	}
@@ -106,8 +110,6 @@ int main(void) {
 				int y=row-1;
 				int d=tolower(dir)=='d'?DIRECTION_DOWN:DIRECTION_ACROSS;
 
-				printf("%d %d %d %d %7s\n",r,x,y,d,w);
-
 				pnt=Scrabble_Move(dict,ndict,bag,rack[r],w,x,y,d,f);
 
 				if(pnt!=-1) score[r]+=pnt;
@@ -152,3 +154,5 @@ int main(void) {
 
 	return 0;
 }
+
+
