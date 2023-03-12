@@ -1,197 +1,200 @@
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <stdarg.h>
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <sys/wait.h>
+#include <signal.h>
 #include <time.h>
+
+#include "gifenc.h"
 
 #include "common.h"
 
-#define CONIO_IMPLEMENTATION
-#include "conio.h"
+#define INI_IMPLEMENTATION 
+#include "ini.h"
 
-#define SCRABBLE_IMPLEMENTATION
+#define IRC_IMPLEMENTATION 
+#include "irc.h"
+
+#define STRUTIL_IMPLEMENTATION 
+#include "strutil.h"
+ 
+#define SCRABBLE_IMPLEMENTATION 
 #include "scrabble.h"
 
-#define BAG_IMPLEMENTATION
-#include "bag.h"
 
-#define RACK_IMPLEMENTATION
-#include "rack.h"
+
+int sck;
 
 
 
-void flush() {
-	int c; while((c=getchar())!='\n' && c!=EOF);
+typedef enum {
+	GAMESTATE_INIT=0,
+	GAMESTATE_JOIN,
+	GAMESTATE_START,
+	GAMESTATE_MAX
+} GameState;
+
+GameState gameState=GAMESTATE_INIT;
+
+
+
+
+
+
+void sig_handler(int signum) {
+	if(signum==SIGALRM) {
+	}
 }
 
-void PrintBoard() {
-	textbackground(BLACK);
-	textcolor(WHITE);
-	printf("\n  ");
-	for(int i=0;i<BOARD_WIDTH;i++) {
-		textbackground(BLACK);
-		textcolor(WHITE);
-		printf("%c",i+'A');
-	}
-	printf("\n");
 
-	for(int j=0;j<BOARD_HEIGHT;j++) {
-		textbackground(BLACK);
-		textcolor(WHITE);
-		printf("%2d",j+1);
-		for(int i=0;i<BOARD_WIDTH;i++) {
-			switch(bonus[j][i]) {
-				case 0: textbackground(BLACK); textcolor(WHITE); break;
-				case 1: textbackground(CYAN); textcolor(WHITE); break;
-				case 2: textbackground(BLUE); textcolor(WHITE); break;
-				case 3: textbackground(MAGENTA); textcolor(WHITE); break;
-				case 4: textbackground(RED); textcolor(WHITE); break;
-				case 5: textbackground(BLACK); textcolor(WHITE); break;
-			}
-			if(board[j][i]!=0) {
-				textbackground(WHITE);
-				textcolor(BLACK);
-				printf("%c",board[j][i]);
-			} else if (i==7 && j==7) {
-				printf("*");				
-			} else  {
-				printf(".");				
-			}
+
+void parsein(IrcMsg *im) {
+
+	char *msg=strdup(im->txt);
+
+	trim(msg);
+
+	if(!strcmp(msg,".start")) {
+
+		if(gameState==GAMESTATE_INIT) {
+			gameState=GAMESTATE_JOIN;			
+		} else if(gameState==GAMESTATE_START) {
+			notice(sck,im->usr,GAME_TITLE" %s: game is already started",im->usr);
+		}	
+
+	} else if(!strcmp(msg,".join")) {
+		if(gameState==GAMESTATE_JOIN) {
+		} else {
+			notice(sck,im->usr,GAME_TITLE" %s: game is not started",im->usr);
 		}
-		textbackground(BLACK);
-		textcolor(WHITE);
-		printf("\n");
 	}
-	textbackground(BLACK);
-	textcolor(WHITE);
-	printf("\n");
+	
+	free(msg);
+	msg=NULL;
+
+}
+
+
+
+void parsesrv(IrcMsg *im,char *line) {
+	im->cmd=line;
+	im->usr = (char*)hst;
+	if(!im->cmd || !*im->cmd) return; 
+	if(im->cmd[0] == ':') {
+		im->usr = im->cmd + 1;
+		im->cmd = skip(im->usr, ' ');
+		if(!*im->cmd) return;
+		skip(im->usr, '!');
+	}
+	skip(im->cmd, '\r');
+	im->par = skip(im->cmd, ' ');
+	im->txt = skip(im->par, ':');
+	trim(im->par);
 }
 
 
 
 int main(void) {
 
-	char **dict=NULL;
-	size_t ndict=0;
+	char line[STRING_MAX];
+	size_t llen=STRING_MAX;
+	ssize_t rlen=0;
 
-	char *bag=NULL;
-	char *rack[4];
-	int score[4];
+	IrcMsg im;
 
 	srand(time(NULL));
 
-	Scrabble_LoadDict(&dict,&ndict,"csw.txt");
+	signal(SIGALRM, sig_handler);
 
-	bag=Bag_New();
+  ini_t *config = ini_load("config.ini");
 
-	for(int j=0;j<4;j++) {
-		score[j]=0;
-		rack[j]=Rack_New();
-		for(int i=0;i<7;i++) {
-			int tile=Bag_PickTile(bag);
-			if(tile!=-1) {
-				Rack_AddTile(rack[j],tile);
-			}
-		}
-	}
+  const char *val; 
+
+  val = ini_get(config,"default","host");
+
+  hst=val?val:hst;
+
+  val = ini_get(config,"default","port");
+
+  prt=val?val:prt;
+
+  val = ini_get(config,"default","nick");
+
+  nck=val?val:nck;
+
+  val = ini_get(config,"default","password");
+
+  pss=val?val:pss;
+
+  val = ini_get(config,"default","channel");
+
+  chn=val?val:chn;
+
+  val = ini_get(config,"default","master");
+
+  mst=val?val:mst;
 
 
 
-	int f=1;
+	sck=Irc_Connect(hst,prt);
 
-	clrscr();
- 	printf("type .h for help\n\n");
+  if (sck<0) {
+  	DieWithUserMessage("Irc_Connect() failed", "unable to connect");
+  }
 
-	for(;;) {
+	if(pss) raw(sck,"PASS %s\r\n",pss);
+	raw(sck,"NICK %s\r\n",nck);
+	raw(sck,"USER %s %s %s :%s\r\n",nck,nck,nck,nck);
 
-		int pnt=0;
-		char line[STRING_MAX];
-	
-		char col,dir;
-		int row,r;
-		char w[STRING_MAX];
+	while((rlen=Irc_Recv(sck,line,llen))!=-1) { 
 
-		printf("scrabble > ");
+		if(rlen>0) {
 
-		if(fgets(line,STRING_MAX,stdin)) {		
+			im.cmd=NULL;
+			im.usr=NULL;
+			im.par=NULL;
+			im.txt=NULL;
 
-			rmnl(line);
-			trim(line);
+			parsesrv(&im,line);		
 
-			if(!strcmp(line,".h")) {
-
-				printf(
-					".h -> this help\n"
-					".w [player] [col][row][dir] [word] -> play a word\n"
-					".c [player] [letters] -> change letters\n"					 
-					".s [player] -> shuffle letters\n"
-					".a [player] [letters] -> arrange letters\n"
-					".b -> print board\n"
-					".r -> print racks\n"
-					".d [word] -> define word\n"
-					".l -> clear screen\n"
-					".q -> quit program\n"
-					"player -> 0 to 3\n"
-					"col -> A to O\n"
-					"row -> 1 to 15\n"
-					"dir -> a for across/d for down\n"
-				);		
-
-			} else if(!strcmp(line,".q")) {
-				break;
-			} else if(!strcmp(line,".l")) {
-				clrscr();
-			} else if(!strcmp(line,".b")) {
-				PrintBoard();
-			} else if(!strcmp(line,".r")) {
-				printf("\n");
-				for(int i=0;i<4;i++) {
-					printf("%d %3d %s\n",i,score[i],rack[i]);
-				}
-				printf("\n");
-			} else if(sscanf(line,".w %d %c%d%c %s",&r,&col,&row,&dir,w)==5) {		
-				int x=tolower(col)-'a';
-				int y=row-1;
-				int d=tolower(dir)=='d'?DIRECTION_DOWN:DIRECTION_ACROSS;
-
-				pnt=Scrabble_Move(dict,ndict,bag,rack[r],w,x,y,d,f);
-
-				if(pnt!=-1) {
-					printf("plus %d points\n",pnt);
-					score[r]+=pnt;
-				}
-
-				if(f==1) f=0;
-			} else if(sscanf(line,".c %d %s",&r,w)==2) {
-				Rack_Change(bag,rack[r],w);
-			} else if(sscanf(line,".c %d",&r)==1) {
-				Rack_Change(bag,rack[r],rack[r]);
-			} else if(sscanf(line,".s %d",&r)==1) {
-				Rack_Shuffle(rack[r]);
-			} else if(sscanf(line,".a %d %s",&r,w)==2) {
-				Rack_Arrange(rack[r],w);
-			} else if(sscanf(line,".d %s",w)==1) {
-				FILE *fin=fopen("cswd.txt","r");
-				while(fgets(line,STRING_MAX,fin)) {
-					int l=strchr(line,'\t')-line;
-					char h[STRING_MAX];
-					h[0]='\0';
-					strncpy(h,line,l);
-					h[l]='\0';
-					if(!strcasecmp(w,h)) {
-						printf("%s",line);
-					}
-				}
-				fclose(fin);
-			} else {
-				printf("invalid command\n");
+	/*
+			printf("cmd: %s\n",im.cmd);
+			printf("usr: %s\n",im.usr);
+			printf("par: %s\n",im.par);
+			printf("txt: %s\n",im.txt);
+	//*/
+			
+			if(!strcmp(im.cmd,"PING")) {
+				line[1]='O';
+				raw(sck,"PONG :%s\r\n",im.txt);
+			} else if(!strcmp(im.cmd,"001")) {
+				raw(sck,"JOIN %s\r\n",chn);
+			} else if(!strcmp(im.cmd,"PRIVMSG")) {
+				printf("%s <%s> %s\n",im.par,im.usr,im.txt);
+				parsein(&im);				
 			}
 
 		}
 
-	}
+		line[0]='\0';
+		llen=STRING_MAX;
+		rlen=0;
 
-	printf("bye\n");
+  }
 
 	return 0;
+	
 }
 
 

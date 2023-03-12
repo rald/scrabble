@@ -2,6 +2,7 @@
 #define COMMON_H
 
 #include <stddef.h>
+#include <stdint.h>
 
 #define GAME_TITLE "SCRABBLE"
 #define SCORE_FILE "score.txt"
@@ -10,8 +11,6 @@
 #define BOARD_HEIGHT 15
 #define STRING_MAX 512
 
-
-
 const char *mst = "siesta";
 const char *hst = "irc.undernet.org";
 const char *prt = "6667";
@@ -19,10 +18,8 @@ const char *nck = "siestu";
 const char *chn = "#pantasya";
 const char *pss = NULL;
 
-
-
 char letters[NUM_LETTERS]={
-  'a','b','c','d','e','f','g','h','i',
+	  'a','b','c','d','e','f','g','h','i',
   'j','k','l','m','n','o','p','q','r',
   's','t','u','v','w','x','y','z','.'
 };
@@ -59,5 +56,25 @@ int bonus[BOARD_HEIGHT][BOARD_WIDTH]={
 
 int board[BOARD_HEIGHT][BOARD_WIDTH]={0};
 
+uint8_t colors[]={
+ 26,  28,  44,	
+ 93,  39,  93,	
+177,  62,  83,	
+239, 125,  87,	
+255, 205, 117,	
+167, 240, 112,
+ 56, 183, 100,	
+ 37, 113, 121,	
+ 41,  54, 111,	
+ 59,	93, 201,	
+ 65, 166, 246,	
+115, 239, 247,	
+244, 244, 244,	
+148, 176, 194,	
+ 86, 108, 134,	
+ 51,  60,  87,	
+};
+
+int bcolors[]={3,10,9,5,2,5};
 
 #endif
